@@ -1,0 +1,74 @@
+version: 2
+jobs:
+  validate:
+    docker:
+      - image: hashicorp/packer:1.1.1
+    working_directory: ~/packer
+    steps:
+      - checkout
+      - run:
+          name: Validate base
+          command: packer validate ./base/base.json
+      - run:
+          name: Validate snowflake
+          command: packer validate ./snowflake/snowflake.json
+  build-base:
+    docker:
+      - image: hashicorp/packer:1.1.1
+    working_directory: ~/packer
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/packer
+      - run:
+          name: Build base
+          command: ./scripts/build.sh base ./base/base.json
+          no_output_timeout: 30m
+      - persist_to_workspace:
+          root: .
+          paths:
+            - manifest-base.json
+      - store_artifacts:
+          path: manifest-base.json
+  build-snowflake:
+    docker:
+      - image: hashicorp/packer:1.1.1
+    working_directory: ~/packer
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/packer
+      - run:
+          name: Build snowflake
+          command: ./scripts/build.sh secondary ./snowflake/snowflake.json
+      - store_artifacts:
+          path: manifest-snowflake.json
+  canary-snowflake:
+    docker:
+      - image: hashicorp/packer:1.1.1
+    working_directory: ~/packer
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/packer
+      - run:
+          name: Install JQ
+          command: apk --no-cache add jq
+      - run:
+          name: Deploy canary
+          command: ./scripts/deploy-master-canary.sh
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - validate
+      - build-base:
+          requires:
+            - validate
+      - build-snowflake:
+          requires:
+            - validate
+            - build-base
+      - canary-snowflake:
+          requires:
+            - build-snowflake
