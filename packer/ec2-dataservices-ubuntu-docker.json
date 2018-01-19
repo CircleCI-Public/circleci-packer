@@ -1,0 +1,51 @@
+{
+  "variables": {
+    "ami_name": "ubuntu-16.04",
+    "sha": "{{env `CIRCLE_SHA1`}}"
+
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "us-east-1",
+      "source_ami": "ami-aa2ea6d0",
+      "instance_type": "t2.micro",
+      "ssh_username": "ubuntu",
+      "ami_name": "indigo-{{user `ami_name`}}-{{user `sha`}}",
+      "tags": {
+        "Name": "{{user `ami_name`}}",
+        "owner": "ksteinbeck",
+        "team": "automation",
+        "gitHash": "{{user `sha`}}"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "sudo {{.Path}}",
+      "scripts": [
+        "scripts/ubuntu/install.sh"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [ "mkdir -p ~/.pip/" ]
+    },
+    {
+      "type": "file",
+      "source": "/home/circleci/.yarnrc",
+      "destination": "~/.yarnrc"
+    },
+    {
+      "type": "file",
+      "source": "/home/circleci/.npmrc",
+      "destination": "~/.npmrc"
+    },
+    {
+      "type": "file",
+      "source": "/home/circleci/.pip/pip.conf",
+      "destination": "~/.pip/pip.conf"
+    }
+  ]
+}
