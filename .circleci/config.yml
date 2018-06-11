@@ -22,11 +22,11 @@ jobs:
           at: ~/packer
       - run:
           name: Add AWS CLI
-          command: apk -Uuv add groff less python py-pip jq && pip install awscli
+          command: apk -Uu add groff less python py-pip jq && pip install --quiet awscli
           no_output_timeout: 30m
       - run:
           name: Build base
-          command: ./scripts/build.sh base ./base/base.json
+          command: ./scripts/build.sh base base
           no_output_timeout: 30m
       - persist_to_workspace:
           root: .
@@ -44,11 +44,11 @@ jobs:
           at: ~/packer
       - run:
           name: Add AWS CLI
-          command: apk -Uuv add groff less python py-pip jq && pip install awscli
+          command: apk -Uu add groff less python py-pip jq && pip install --quiet awscli
           no_output_timeout: 30m
       - run:
           name: Build snowflake
-          command: ./scripts/build.sh secondary ./snowflake/snowflake.json
+          command: ./scripts/build.sh snowflake snowflake
       - store_artifacts:
           path: manifest-snowflake.json
   canary-snowflake:
