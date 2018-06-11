@@ -10,7 +10,7 @@
         "ami_regions": [
           "us-east-1"
         ],
-        "instance_type": "t2.micro",
+        "instance_type": "t1.micro",
         "region": "us-east-1",
         "run_tags": {
           "ami-create": "{{user `ami_name`}}"
