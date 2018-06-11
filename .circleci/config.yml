@@ -22,7 +22,7 @@ jobs:
           at: ~/packer
       - run:
           name: Add AWS CLI
-          command: apk -Uuv add aws-cli jq
+          command: apk -Uuv add groff less python py-pip jq && pip install awscli
           no_output_timeout: 30m
       - run:
           name: Build base
@@ -44,7 +44,7 @@ jobs:
           at: ~/packer
       - run:
           name: Add AWS CLI
-          command: apk -Uuv add aws-cli jq
+          command: apk -Uuv add groff less python py-pip jq && pip install awscli
           no_output_timeout: 30m
       - run:
           name: Build snowflake
