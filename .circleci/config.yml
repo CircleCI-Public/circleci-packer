@@ -10,14 +10,14 @@ version: 2
 jobs:
   xbuild:
     docker:
-      - image: jenkins201/hashicorp-ci:latest
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - run:
           name: Hello World
           command: echo "Hello World! Where's my workflow?"
   packer-validate:
     docker:
-      - image: jenkins201/hashicorp-ci:latest
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - checkout
       - run:
@@ -28,7 +28,7 @@ jobs:
           command: packer validate ./app/app.json
   build-base:
     docker:
-      - image: jenkins201/hashicorp-ci:latest
+      - image: simonmcc/hashicorp-pipeline:latest
     working_directory: ~/packer
     steps:
       - checkout
@@ -50,7 +50,7 @@ jobs:
           path: manifest-base.json
   build-app:
     docker:
-      - image: jenkins201/hashicorp-ci:latest
+      - image: simonmcc/hashicorp-pipeline:latest
     working_directory: ~/packer
     steps:
       - checkout
@@ -67,7 +67,7 @@ jobs:
           path: manifest-app.json
   test-app:
     docker:
-      - image: jenkins201/hashicorp-ci:latest
+      - image: simonmcc/hashicorp-pipeline:latest
     working_directory: ~/packer
     steps:
       - checkout
@@ -82,7 +82,7 @@ jobs:
 
   terraform-plan:
     docker:
-      - image: jenkins201/hashicorp-ci:latest
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - checkout
       - run:
@@ -99,7 +99,7 @@ jobs:
             - .terraform
   terraform-apply:
     docker:
-      - image: jenkins201/hashicorp-ci:latest
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - checkout
       - attach_workspace:
