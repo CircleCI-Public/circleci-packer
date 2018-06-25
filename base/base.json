@@ -7,6 +7,11 @@
     "curl -sSL 'https://cloud-images.ubuntu.com/query/xenial/server/released.current.txt' | grep us-east-1 | grep hvm | grep -e 'ebs' | awk '{print $8;}'",
     ""
   ],
+  "variables": {
+    "ami_name": "baseline-ubuntu-1604",
+    "ami_base": "ami-a4dc46db",
+    "ami_sha":  "{{env `SHA`}}"
+  },
   "builders": [
     {
       "ami_description": "{{user `ami_name`}} AMI",
@@ -52,10 +57,5 @@
       ],
       "type": "shell"
     }
-  ],
-  "variables": {
-    "ami_name": "baseline-ubuntu-1604",
-    "ami_base": "ami-a4dc46db",
-    "ami_sha":  "{{env `SHA`}}"
-  }
+  ]
 }

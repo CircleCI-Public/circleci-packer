@@ -32,7 +32,8 @@ SHA=$(git ls-tree HEAD "$DIR" | cut -d" " -f3 | cut -f1)
 TAG_EXISTS=$(tag_exists $SHA)
 
 if [ "$TAG_EXISTS" = "false" ]; then
-    packer build ${DIR}/$NAME.json
+    echo "No AMI found for ${NAME} (SHA: ${SHA})"
+    SHA=${SHA} packer build ${DIR}/$NAME.json
 else
     touch manifest-${NAME}.json
 fi
