@@ -1,5 +1,20 @@
+# Simple Stacks - pipelines for small single node environments
+# 1. Build the base AMI (overkill for this example, should be in seperate repo)
+# 2. Build the app AMI from the base AMI
+# 3. Test the app ami (via terraform plan/apply/testinfra/destroy? test environment)
+# 4. terraform plan using the freshly built app AMI (production)
+# 5. if master branch - hold
+# 6. if master branch - apply
+
 version: 2
 jobs:
+  xbuild:
+    docker:
+      - image: jenkins201/hashicorp-ci:latest
+    steps:
+      - run:
+          name: Hello World
+          command: echo "Hello World! Where's my workflow?"
   packer-validate:
     docker:
       - image: jenkins201/hashicorp-ci:latest
@@ -83,7 +98,6 @@ jobs:
           paths:
             - plan/plan.out
             - .terraform
-
   terraform-apply:
     docker:
       - image: jenkins201/hashicorp-ci:latest
@@ -96,18 +110,17 @@ jobs:
           command: |
             terraform init
             terraform apply /tmp/workspace/plan/plan.out
-
 workflows:
   version: 2
-  packer-build:
+  packer-terraform:
     jobs:
       - packer-validate
       - build-base:
           requires:
-            - validate
+            - packer-validate
       - build-app:
           requires:
-            - validate
+            - packer-validate
             - build-base
       - test-app:
           requires:
@@ -123,10 +136,10 @@ workflows:
       - hold:
           type: approval
           requires:
-           - plan
+           - terraform-plan
       - terraform-apply:
           requires:
-            - plan
+            - terraform-plan
             - hold
           filters:
             tags:
