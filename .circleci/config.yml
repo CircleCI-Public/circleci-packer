@@ -54,7 +54,7 @@ jobs:
           at: ~/packer
       - run:
           name: Build app
-          command: ./scripts/build.sh app app
+          command: ./scripts/build.sh app app base
       - store_artifacts:
           path: manifest-app.json
   test-app:

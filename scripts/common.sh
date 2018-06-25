@@ -25,7 +25,8 @@ base_rebuilt () {
 extract_artifact_id () {
     local NAME="$1"
     local AMI="$(cat manifest-$NAME.json | jq '.builds[0].artifact_id' | awk -F 'us-east-1' '{print $2}' | cut -d',' -f1)"
-    echo "${AMI:1}"
+    local AMI="$(cat manifest-$NAME.json | jq '.builds[0].artifact_id' | perl -n -e'/us-east-1:(ami-[a-z0-9]+)/ && print $1')"
+    echo "${AMI}"
 }
 
 get_base_ami () {
@@ -47,4 +48,5 @@ package_check () {
     command -v packer > /dev/null || (echo "packer must be installed" && exit 1)
     command -v git > /dev/null || (echo "git must be installed" && exit 1)
     command -v jq > /dev/null || (echo "jq must be installed" && exit 1)
+    command -v perl > /dev/null || (echo "perl must be installed" && exit 1)
 }
