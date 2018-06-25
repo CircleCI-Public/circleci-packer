@@ -1,8 +1,8 @@
 version: 2
 jobs:
-  validate:
+  packer-validate:
     docker:
-      - image: hashicorp/packer:1.1.1
+      - image: jenkins201/hashicorp-ci:latest
     working_directory: ~/packer
     steps:
       - checkout
@@ -10,11 +10,11 @@ jobs:
           name: Validate base
           command: packer validate ./base/base.json
       - run:
-          name: Validate snowflake
-          command: packer validate ./snowflake/snowflake.json
+          name: Validate app
+          command: packer validate ./app/app.json
   build-base:
     docker:
-      - image: hashicorp/packer:1.1.1
+      - image: jenkins201/hashicorp-ci:latest
     working_directory: ~/packer
     steps:
       - checkout
@@ -34,9 +34,9 @@ jobs:
             - manifest-base.json
       - store_artifacts:
           path: manifest-base.json
-  build-snowflake:
+  build-app:
     docker:
-      - image: hashicorp/packer:1.1.1
+      - image: jenkins201/hashicorp-ci:latest
     working_directory: ~/packer
     steps:
       - checkout
@@ -47,13 +47,13 @@ jobs:
           command: apk -Uu add groff less python py-pip jq && pip install --quiet awscli
           no_output_timeout: 30m
       - run:
-          name: Build snowflake
-          command: ./scripts/build.sh snowflake snowflake
+          name: Build app
+          command: ./scripts/build.sh app app
       - store_artifacts:
-          path: manifest-snowflake.json
-  canary-snowflake:
+          path: manifest-app.json
+  test-app:
     docker:
-      - image: hashicorp/packer:1.1.1
+      - image: jenkins201/hashicorp-ci:latest
     working_directory: ~/packer
     steps:
       - checkout
@@ -63,20 +63,73 @@ jobs:
           name: Install JQ
           command: apk --no-cache add jq
       - run:
-          name: Deploy canary
-          command: ./scripts/deploy-master-canary.sh
+          name: Deploy app
+          command: ./scripts/deploy-master-app.sh
+
+  terraform-plan:
+    docker:
+      - image: jenkins201/hashicorp-ci:latest
+    steps:
+      - checkout
+      - run:
+          command: mkdir plan
+      - run:
+          name: Terraform plan
+          command: |
+            terraform init
+            terraform plan -out=plan/plan.out
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - plan/plan.out
+            - .terraform
+
+  terraform-apply:
+    docker:
+      - image: jenkins201/hashicorp-ci:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Terraform apply
+          command: |
+            terraform init
+            terraform apply /tmp/workspace/plan/plan.out
+
 workflows:
   version: 2
-  build-and-deploy:
+  packer-build:
     jobs:
-      - validate
+      - packer-validate
       - build-base:
           requires:
             - validate
-      - build-snowflake:
+      - build-app:
           requires:
             - validate
             - build-base
-      - canary-snowflake:
+      - test-app:
           requires:
-            - build-snowflake
+            - build-app
+      - terraform-plan:
+          requires:
+            - test-app
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /.*/
+      - hold:
+          type: approval
+          requires:
+           - plan
+      - terraform-apply:
+          requires:
+            - plan
+            - hold
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /master/
