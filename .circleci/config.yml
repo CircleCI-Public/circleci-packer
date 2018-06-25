@@ -35,10 +35,6 @@ jobs:
       - attach_workspace:
           at: ~/packer
       - run:
-          name: Add AWS CLI
-          command: apk -Uu add groff less python py-pip jq && pip install --quiet awscli
-          no_output_timeout: 30m
-      - run:
           name: Build base
           command: ./scripts/build.sh base base
           no_output_timeout: 30m
@@ -57,10 +53,6 @@ jobs:
       - attach_workspace:
           at: ~/packer
       - run:
-          name: Add AWS CLI
-          command: apk -Uu add groff less python py-pip jq && pip install --quiet awscli
-          no_output_timeout: 30m
-      - run:
           name: Build app
           command: ./scripts/build.sh app app
       - store_artifacts:
@@ -74,12 +66,11 @@ jobs:
       - attach_workspace:
           at: ~/packer
       - run:
-          name: Install JQ
-          command: apk --no-cache add jq
-      - run:
           name: Deploy app
-          command: ./scripts/deploy-master-app.sh
-
+          command: |
+            terraform init
+            terraform apply
+            echo "TODO: Test stuff"
   terraform-plan:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
