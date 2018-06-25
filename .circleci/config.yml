@@ -69,7 +69,7 @@ jobs:
           name: Deploy app
           command: |
             terraform init
-            terraform apply
+            terraform apply --auto-approve
             echo "TODO: Test stuff"
   terraform-plan:
     docker:
