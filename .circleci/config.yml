@@ -18,9 +18,7 @@ jobs:
   packer-validate:
     docker:
       - image: jenkins201/hashicorp-ci:latest
-    working_directory: ~/packer
     steps:
-      - checkout
       - run:
           name: Validate base
           command: packer validate ./base/base.json
@@ -146,3 +144,4 @@ workflows:
               only: /.*/
             branches:
               only: /master/
+
