@@ -30,7 +30,7 @@
     ],
     "post-processors": [
       {
-        "output": "manifest-snowflake.json",
+        "output": "manifest-app.json",
         "strip_path": true,
         "type": "manifest"
       }
@@ -45,7 +45,7 @@
       {
         "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E {{ .Path }}",
         "scripts": [
-          "./snowflake/tasks/docker.sh"
+          "./app/tasks/docker.sh"
         ],
         "type": "shell"
       },
@@ -59,7 +59,7 @@
       }
     ],
     "variables": {
-      "ami_name": "snowflake",
+      "ami_name": "app",
       "ami_base": "{{env `AMI_BASE`}}",
       "ami_sha": "{{env `SHA`}}",
       "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
