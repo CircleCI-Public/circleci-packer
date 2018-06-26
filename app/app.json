@@ -28,7 +28,7 @@
         "tags": {
           "OS_Name": "Ubuntu",
           "OS_Version": "16.04",
-          "SHA": "{{user `sha`}}",
+          "SHA": "{{user `ami_sha`}}",
           "AMI": "{{user `ami_name`}}"
         },
         "type": "amazon-ebs",
