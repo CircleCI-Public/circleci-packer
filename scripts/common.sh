@@ -24,7 +24,6 @@ base_rebuilt () {
 
 extract_artifact_id () {
     local NAME="$1"
-    local AMI="$(cat manifest-$NAME.json | jq '.builds[0].artifact_id' | awk -F 'us-east-1' '{print $2}' | cut -d',' -f1)"
     local AMI="$(cat manifest-$NAME.json | jq '.builds[0].artifact_id' | perl -n -e'/us-east-1:(ami-[a-z0-9]+)/ && print $1')"
     echo "${AMI}"
 }

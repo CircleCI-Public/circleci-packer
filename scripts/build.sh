@@ -8,7 +8,7 @@ source scripts/common.sh
 package_check
 
 #
-# base.sh DIR TARGET BASE_NAME
+# base.sh DIR TARGET [BASE_NAME]
 DIR="$1"
 NAME="$2"
 BASE_NAME="$3"
@@ -24,7 +24,10 @@ if [[ -z "$BASE_NAME" ]]; then
     echo "No base AMI given"
 else
     export BASE_BUILT=$(base_rebuilt $BASE_NAME)
-    export AMI_BASE="$(get_base_ami "$BASE_BUILT" "$BASE" "$BASE_NAME")"
+    if [ "${BASE_BUILT}" = "true" ]; then
+        echo "Couldn't find ${BASE_NAME} in manifest-${BASE_NAME}.json, looking up AMI via EC2 API"
+    fi
+    export AMI_BASE="$(get_base_ami "$BASE_BUILT" "$BASE_NAME" "$BASE_NAME")"
 fi
 
 export SHA=$(git ls-tree HEAD "$DIR" | cut -d" " -f3 | cut -f1)
