@@ -24,7 +24,7 @@ if [[ -z "$BASE_NAME" ]]; then
     echo "No base AMI given"
 else
     BASE_BUILT=$(base_rebuilt $BASE_NAME)
-    AMI_BASE="$(get_base_ami "$BASE_BUILT" "$BASE" "$BASE_NAME")"
+    AMI_BASE="$(get_base_ami "$BASE_BUILT" "$NAME" "$BASE_NAME")"
 fi
 echo "latest $DIR build already exists: $TAG_EXISTS"
 
