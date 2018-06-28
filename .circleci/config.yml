@@ -92,6 +92,7 @@ jobs:
     docker:
       - image: chef/inspec:latest
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - run:
