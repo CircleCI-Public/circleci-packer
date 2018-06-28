@@ -85,9 +85,6 @@ jobs:
           root: ./
           paths:
             - output.json
-      - run:
-          name: Destroy Test Stack
-          command: ./scripts/tf-wrapper.sh -a destroy
   test-test-stack:
     docker:
       - image: chef/inspec:latest
