@@ -49,7 +49,8 @@ TF_VARS_FILE=$(map_branch_to_tfvars ${GIT_BRANCH})
 # create the S3 bucket, DynamoDB & matching backend.tf
 generate_terraform_backend
 
-terraform init
+[[ ! -d .terrform ]] && terraform init
+# the workspace may already exist - safe to ignore & carry on
 terraform workspace new ${TF_WORKSPACE}
 terraform workspace select ${TF_WORKSPACE}
 case "${TF_ACTION}" in
@@ -59,6 +60,9 @@ case "${TF_ACTION}" in
 				;;
 		apply)
 				terraform apply -var-file=${TF_VARS_FILE} plan/plan.out
+				terraform output
+        # once more for the camera
+				terraform output -json > output.json
 				;;
 		destroy)
 				terraform destroy -var-file=${TF_VARS_FILE} -auto-approve

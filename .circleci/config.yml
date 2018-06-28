@@ -15,6 +15,19 @@ jobs:
       - run:
           name: Hello World
           command: echo "Hello World! Where's my workflow?"
+  terraform-sanity:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - run:
+          name: terraform fmt
+          command: terraform fmt -check=true
+      - run:
+          name: terraform validate
+          # TODO this will probably need a tfvars file passed to at somepoint,
+          # so it should probably move inside tf-wrapper.sh
+          command: terraform validate
   packer-validate:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
@@ -66,11 +79,18 @@ jobs:
       - attach_workspace:
           at: ~/packer
       - run:
-          name: Deploy app
-          command: |
-            terraform init
-            terraform apply --auto-approve
+          name: Build test stack via terraform
+          command: ./scripts/tf-wrapper.sh -a plan
+      - run:
+          name: Terraform apply
+          command: ./scripts/tf-wrapper.sh -a apply
+      - run:
+          name: Test the deployed stack
+          command:
             echo "TODO: Test stuff"
+      - run:
+          name: Destroy Test Stack
+          command: ./scripts/tf-wrapper.sh -a destroy
   terraform-plan:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
@@ -117,7 +137,7 @@ workflows:
             tags:
               only: /.*/
             branches:
-              only: /.*/
+              only: /master/
       - hold:
           type: approval
           requires:
@@ -136,4 +156,3 @@ workflows:
               only: /.*/
             branches:
               only: /master/
-
