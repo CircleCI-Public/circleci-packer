@@ -100,6 +100,8 @@ jobs:
           command: |
             echo "TODO: Test stuff"
             cat output.json
+            mkdir aws-security/files || true
+            cp output.json aws-security/files/output.json
             inspec detect -t aws://
             inspec exec aws-security -t aws://us-east-1
   destroy-test-stack:
