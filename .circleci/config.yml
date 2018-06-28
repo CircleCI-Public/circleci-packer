@@ -77,12 +77,8 @@ jobs:
     steps:
       - checkout
       - run:
-          command: mkdir plan
-      - run:
           name: Terraform plan
-          command: |
-            terraform init
-            terraform plan -out=plan/plan.out
+          command: ./scripts/tf-wrapper.sh -a plan
       - persist_to_workspace:
           root: ./
           paths:
@@ -94,12 +90,11 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/workspace
+          at: .
       - run:
           name: Terraform apply
-          command: |
-            terraform init
-            terraform apply /tmp/workspace/plan/plan.out
+          command: ./scripts/tf-wrapper.sh -a apply
+
 workflows:
   version: 2
   packer-terraform:
@@ -127,6 +122,11 @@ workflows:
           type: approval
           requires:
            - terraform-plan
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /master/
       - terraform-apply:
           requires:
             - terraform-plan
