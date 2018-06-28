@@ -158,7 +158,7 @@ workflows:
             - test-test-stack
       - terraform-plan:
           requires:
-            - test-app
+            - test-test-stack
           filters:
             tags:
               only: /.*/
