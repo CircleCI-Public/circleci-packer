@@ -63,25 +63,13 @@ jobs:
           command: ./scripts/build.sh app app base
       - store_artifacts:
           path: manifest-app.json
-  test-app:
+  build-test-stack:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - checkout
-      - run:
-          name: "diag1"
-          command: |
-            pwd
-            echo "Current directory:"
-            ls -la
       - attach_workspace:
           at: .
-      - run:
-          name: "diag1"
-          command: |
-            pwd
-            echo "Current directory:"
-            ls -la
       - run:
           name: Build test stack via terraform
           command: ./scripts/tf-wrapper.sh -a plan
@@ -97,6 +85,27 @@ jobs:
           root: ./
           paths:
             - output.json
+      - run:
+          name: Destroy Test Stack
+          command: ./scripts/tf-wrapper.sh -a destroy
+  test-test-stack:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test the deployed stack
+          command: |
+            echo "TODO: Test stuff"
+            cat output.json
+  destroy-test-stack:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
       - run:
           name: Destroy Test Stack
           command: ./scripts/tf-wrapper.sh -a destroy
@@ -137,10 +146,16 @@ workflows:
           requires:
             - packer-validate
             - build-base
-      - test-app:
+      - build-test-stack:
           requires:
             - build-app
             - terraform-fmt
+      - test-test-stack:
+          requires:
+            - build-test-stack
+      - destroy-test-stack:
+          requires:
+            - test-test-stack
       - terraform-plan:
           requires:
             - test-app
