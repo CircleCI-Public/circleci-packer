@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Hello World
           command: echo "Hello World! Where's my workflow?"
-  terraform-sanity:
+  terraform-fmt:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
     steps:
@@ -23,11 +23,6 @@ jobs:
       - run:
           name: terraform fmt
           command: terraform fmt -check=true
-      - run:
-          name: terraform validate
-          # TODO this will probably need a tfvars file passed to at somepoint,
-          # so it should probably move inside tf-wrapper.sh
-          command: terraform validate
   packer-validate:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
@@ -121,7 +116,7 @@ workflows:
   packer-terraform:
     jobs:
       - packer-validate
-      - terraform-sanity
+      - terraform-fmt
       - build-base:
           requires:
             - packer-validate
@@ -132,7 +127,7 @@ workflows:
       - test-app:
           requires:
             - build-app
-            - terraform-sanity
+            - terraform-fmt
       - terraform-plan:
           requires:
             - test-app
