@@ -71,8 +71,24 @@ jobs:
     working_directory: ~/packer
     steps:
       - checkout
+      - run:
+          name: "diag1"
+          command: |
+            pwd
+            echo "Current directory:"
+            ls -la
+            echo "~/packer"
+            ls -la ~/packer
       - attach_workspace:
           at: ~/packer
+      - run:
+          name: "diag1"
+          command: |
+            pwd
+            echo "Current directory:"
+            ls -la
+            echo "~/packer"
+            ls -la ~/packer
       - run:
           name: Build test stack via terraform
           command: ./scripts/tf-wrapper.sh -a plan
