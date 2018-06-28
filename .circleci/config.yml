@@ -90,7 +90,7 @@ jobs:
           command: ./scripts/tf-wrapper.sh -a destroy
   test-test-stack:
     docker:
-      - image: simonmcc/hashicorp-pipeline:latest
+      - image: chef/inspec:latest
     steps:
       - attach_workspace:
           at: .
@@ -99,6 +99,8 @@ jobs:
           command: |
             echo "TODO: Test stuff"
             cat output.json
+            inspec detect -t aws://
+            inspec exec aws-security -t aws://us-east-1
   destroy-test-stack:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
