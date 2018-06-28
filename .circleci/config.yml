@@ -37,11 +37,10 @@ jobs:
   build-base:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
-    working_directory: ~/packer
     steps:
       - checkout
       - attach_workspace:
-          at: ~/packer
+          at: .
       - run:
           name: Build base
           command: ./scripts/build.sh base base
@@ -55,11 +54,10 @@ jobs:
   build-app:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
-    working_directory: ~/packer
     steps:
       - checkout
       - attach_workspace:
-          at: ~/packer
+          at: .
       - run:
           name: Build app
           command: ./scripts/build.sh app app base
@@ -68,7 +66,6 @@ jobs:
   test-app:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
-    working_directory: ~/packer
     steps:
       - checkout
       - run:
@@ -77,18 +74,14 @@ jobs:
             pwd
             echo "Current directory:"
             ls -la
-            echo "~/packer"
-            ls -la ~/packer
       - attach_workspace:
-          at: ~/packer
+          at: .
       - run:
           name: "diag1"
           command: |
             pwd
             echo "Current directory:"
             ls -la
-            echo "~/packer"
-            ls -la ~/packer
       - run:
           name: Build test stack via terraform
           command: ./scripts/tf-wrapper.sh -a plan
@@ -100,6 +93,10 @@ jobs:
           command: |
             echo "TODO: Test stuff"
             cat output.json
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - output.json
       - run:
           name: Destroy Test Stack
           command: ./scripts/tf-wrapper.sh -a destroy
