@@ -9,6 +9,7 @@
 # Use case: build an ephemeral terraform configuration in CI to test & then destroy
 # Use Case: Maintain default/master safely (how?!?)
 #
+set -e
 
 THIS_SCRIPT=${BASH_SOURCE[0]:-$0}
 # grumble, moan, PATH, symlinks
@@ -30,7 +31,7 @@ while getopts "a:e:hv" opt; do
             ;;
         *)
             show_help
-            exit 0
+            exit 1
             ;;
     esac
 done
@@ -51,7 +52,7 @@ generate_terraform_backend
 
 [[ ! -d .terrform ]] && terraform init
 # the workspace may already exist - safe to ignore & carry on
-terraform workspace new ${TF_WORKSPACE}
+terraform workspace new ${TF_WORKSPACE} || true
 terraform workspace select ${TF_WORKSPACE}
 case "${TF_ACTION}" in
 		plan)

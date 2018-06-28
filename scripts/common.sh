@@ -72,6 +72,7 @@ check_aws_credentials () {
     [[ -z "${AWS_DEFAULT_REGION}" ]] && (echo "AWS_DEFAULT_REGION must be set" && exit 1)
     [[ -z "${AWS_ACCESS_KEY_ID}" ]] && (echo "AWS_ACCESS_KEY_ID must be set" && exit 1)
     [[ -z "${AWS_SECRET_ACCESS_KEY}" ]] && (echo "AWS_SECRET_ACCESS_KEY must be set" && exit 1)
+    [[ 1 ]]
 }
 
 generate_terraform_backend() {
