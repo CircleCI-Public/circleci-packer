@@ -86,8 +86,9 @@ jobs:
           command: ./scripts/tf-wrapper.sh -a apply
       - run:
           name: Test the deployed stack
-          command:
+          command: |
             echo "TODO: Test stuff"
+            cat output.json
       - run:
           name: Destroy Test Stack
           command: ./scripts/tf-wrapper.sh -a destroy
@@ -120,6 +121,7 @@ workflows:
   packer-terraform:
     jobs:
       - packer-validate
+      - terraform-sanity
       - build-base:
           requires:
             - packer-validate
@@ -130,6 +132,7 @@ workflows:
       - test-app:
           requires:
             - build-app
+            - terraform-sanity
       - terraform-plan:
           requires:
             - test-app
