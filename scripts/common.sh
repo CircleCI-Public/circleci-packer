@@ -139,9 +139,9 @@ EOF
 map_branch_to_workspace() {
   # TODO input & output sanity checking..
   if [[ $1 = 'master' ]]; then
-    echo "default"
+    echo "default" | tr / -
   else
-    echo $1
+    echo $1 | tr / -
   fi
 }
 
