@@ -137,9 +137,7 @@ jobs:
 
 workflows:
   version: 2
-  packer-terraform-non-master:
-    branches:
-      ignore: master
+  packer-terraform:
     jobs:
       - packer-validate
       - terraform-fmt
@@ -151,39 +149,35 @@ workflows:
             - packer-validate
             - build-base
       - build-test-stack:
+          branches:
+            ignore: master
           requires:
             - build-app
             - terraform-fmt
       - test-test-stack:
+          branches:
+            ignore: master
           requires:
             - build-test-stack
       - destroy-test-stack:
+          branches:
+            ignore: master
           requires:
             - test-test-stack
       - terraform-plan:
-          requires:
-            - test-test-stack
-  packer-terraform-master:
-    branches:
-      only: master
-    jobs:
-      - packer-validate
-      - terraform-fmt
-      - build-base:
-          requires:
-            - packer-validate
-      - build-app:
-          requires:
-            - packer-validate
-            - build-base
-      - terraform-plan:
+          branches:
+            ignore: master
           requires:
             - build-app
       - hold:
+          branches:
+            only: master
           type: approval
           requires:
            - terraform-plan
       - terraform-apply:
+          branches:
+            only: master
           requires:
             - terraform-plan
             - hold
