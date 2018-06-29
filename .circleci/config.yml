@@ -1,9 +1,186 @@
+# Simple Stacks - pipelines for small single node environments
+# 1. Build the base AMI (overkill for this example, should be in seperate repo)
+# 2. Build the app AMI from the base AMI
+# 3. Test the app ami (via terraform plan/apply/testinfra/destroy? test environment)
+# 4. terraform plan using the freshly built app AMI (production)
+# 5. if master branch - hold
+# 6. if master branch - apply
+
 version: 2
 jobs:
-  build:
+  xbuild:
     docker:
-      - image: alpine:latest
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - run:
-          name: No Op
-          command: echo "Hello World!"
+          name: Hello World
+          command: echo "Hello World! Where's my workflow?"
+  terraform-fmt:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - run:
+          name: terraform fmt
+          command: terraform fmt -check=true
+  packer-validate:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - run:
+          name: Validate base
+          command: packer validate ./base/base.json
+      - run:
+          name: Validate app
+          command: packer validate ./app/app.json
+  build-base:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build base
+          command: ./scripts/build.sh base base
+          no_output_timeout: 30m
+      - persist_to_workspace:
+          root: .
+          paths:
+            - manifest-base.json
+      - store_artifacts:
+          path: manifest-base.json
+  build-app:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build app
+          command: ./scripts/build.sh app app base
+      - store_artifacts:
+          path: manifest-app.json
+  build-test-stack:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build test stack via terraform
+          command: ./scripts/tf-wrapper.sh -a plan
+      - run:
+          name: Terraform apply
+          command: ./scripts/tf-wrapper.sh -a apply
+      - run:
+          name: Test the deployed stack
+          command: |
+            echo "TODO: Test stuff"
+            cat output.json
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - output.json
+  test-test-stack:
+    docker:
+      - image: chef/inspec:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test the deployed stack
+          command: |
+            echo "TODO: Test stuff"
+            cat output.json
+            mkdir aws-security/files || true
+            cp output.json aws-security/files/output.json
+            inspec detect -t aws://
+            inspec exec aws-security -t aws://us-east-1
+  destroy-test-stack:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Destroy Test Stack
+          command: ./scripts/tf-wrapper.sh -a destroy
+  terraform-plan:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - run:
+          name: Terraform plan
+          command: ./scripts/tf-wrapper.sh -a plan
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - plan/plan.out
+            - .terraform
+  terraform-apply:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Terraform apply
+          command: ./scripts/tf-wrapper.sh -a apply
+
+workflows:
+  version: 2
+  packer-terraform:
+    jobs:
+      - packer-validate
+      - terraform-fmt
+      - build-base:
+          requires:
+            - packer-validate
+      - build-app:
+          requires:
+            - packer-validate
+            - build-base
+      - build-test-stack:
+          requires:
+            - build-app
+            - terraform-fmt
+      - test-test-stack:
+          requires:
+            - build-test-stack
+      - destroy-test-stack:
+          requires:
+            - test-test-stack
+      - terraform-plan:
+          requires:
+            - test-test-stack
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /master/
+      - hold:
+          type: approval
+          requires:
+           - terraform-plan
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /master/
+      - terraform-apply:
+          requires:
+            - terraform-plan
+            - hold
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /master/
