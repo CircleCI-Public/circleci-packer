@@ -149,38 +149,41 @@ workflows:
             - packer-validate
             - build-base
       - build-test-stack:
+          filters:
+            branches:
+              ignore: master
           requires:
             - build-app
             - terraform-fmt
       - test-test-stack:
+          filters:
+            branches:
+              ignore: master
           requires:
             - build-test-stack
       - destroy-test-stack:
+          filters:
+            branches:
+              ignore: master
           requires:
             - test-test-stack
       - terraform-plan:
-          requires:
-            - test-test-stack
           filters:
-            tags:
-              only: /.*/
             branches:
-              only: /master/
+              ignore: master
+          requires:
+            - build-app
       - hold:
+          filters:
+            branches:
+              only: master
           type: approval
           requires:
            - terraform-plan
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              only: /master/
       - terraform-apply:
+          filters:
+            branches:
+              only: master
           requires:
             - terraform-plan
             - hold
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              only: /master/
