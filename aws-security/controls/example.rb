@@ -13,5 +13,5 @@ end
 describe aws_vpc(dmz_vpc_id) do
   its('state') { should eq 'available' }
   # this should fail :)
-  its('cidr_block') { should eq '172.18.0.0/16' }
+  its('cidr_block') { should eq '172.19.0.0/16' }
 end
