@@ -22,7 +22,7 @@ jobs:
       - checkout
       - run:
           name: terraform fmt
-          command: terraform fmt -check=true
+          command: terraform fmt -check=true -diff=true
   packer-validate:
     docker:
       - image: simonmcc/hashicorp-pipeline:latest
