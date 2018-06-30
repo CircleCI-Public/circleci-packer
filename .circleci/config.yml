@@ -170,7 +170,7 @@ workflows:
       - terraform-plan:
           filters:
             branches:
-              ignore: master
+              only: master
           requires:
             - build-app
       - hold:
