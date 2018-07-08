@@ -66,7 +66,7 @@ pipeline {
       }
     }
 
-		stage('build test stack) {
+		stage('build test stack') {
 			agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
       when {
         expression { env.BRANCH_NAME != 'master' }
@@ -86,7 +86,7 @@ pipeline {
 				}
 			}
 		}
-		stage('test test stack) {
+		stage('test test stack') {
 			agent { docker { image 'chef/inspec:latest' } }
       when {
         expression { env.BRANCH_NAME != 'master' }
@@ -110,7 +110,7 @@ pipeline {
 				}
 			}
 		}
-		stage('destroy test stack) {
+		stage('destroy test stack') {
 			agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
       when {
         expression { env.BRANCH_NAME != 'master' }
