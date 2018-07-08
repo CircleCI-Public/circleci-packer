@@ -7,10 +7,15 @@ tag_exists () {
     fi
     EMPTY=$(aws ec2 describe-images --filters Name=tag:SHA,Values=$SHA --query 'Images[*]')
     AWS_CLI_EXIT_CODE=$?
-    if [ "$EMPTY" = "[]" ]; then
-        echo "false"
+    if [[ "${AWS_CLI_EXIT_CODE}" -eq 0 ]]; then
+      if [ "$EMPTY" = "[]" ]; then
+          echo "false"
+      else
+          echo "true"
+      fi
     else
-        echo "true"
+      (>&2 echo "ERROR: AWS CLI error checking for existing images matching ${SHA}")
+      exit 2
     fi
 }
 
