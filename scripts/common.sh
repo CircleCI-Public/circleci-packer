@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Wrapping a few CLI command in bash always seems like a good idea at the start.
+# It's not. Don't do it. Use python to wrap & possible call API's directly.
 tag_exists () {
     local SHA=$1
     if [[ -z "$SHA" ]]; then

@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# Hashicorp packer/terraform simple stack build wrapper
+# * facilitates building base & service/app AMI (service/app depends on base)
+# * tag AMI's with SHA1 of the packer .json file that built it
+#
+# Wrapping a few CLI command in bash always seems like a good idea at the start.
+# It's not. Don't do it. Use python to wrap & possible call API's directly.
 
 # Exit immediately if a command exits with a non-zero status
 set -e

@@ -54,5 +54,78 @@ pipeline {
 				}
 			}
 		}
+    stage('Manual Approval') {
+      // TODO: this should be outside the implicit node definition, but then we'd
+      // have to work out how to manage the plan/plan.out being persisted between stages
+      // (probably use stash & unstash?)
+      when {
+        expression { env.BRANCH_NAME == 'master' }
+      }
+      steps {
+        input 'Do you approve the apply?'
+      }
+    }
+
+		stage('build test stack) {
+			agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
+      when {
+        expression { env.BRANCH_NAME != 'master' }
+      }
+			steps {
+				checkout scm
+				withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'demo-aws-creds',
+                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY' ]]) {
+					wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+						sh "./scripts/tf-wrapper.sh -a plan"
+						sh "./scripts/tf-wrapper.sh -a apply"
+            sh "cat output.json"
+            stash name: 'terraform_output', includes: '**/output.json'
+					}
+				}
+			}
+		}
+		stage('test test stack) {
+			agent { docker { image 'chef/inspec:latest' } }
+      when {
+        expression { env.BRANCH_NAME != 'master' }
+      }
+			steps {
+				checkout scm
+				withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'demo-aws-creds',
+                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY' ]]) {
+					wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+            unstash 'terraform_output'
+            sh "cat output.json"
+            sh "mkdir aws-security/files || true"
+            sh "mkdir /tmp/test-results || true"
+            sh "cp output.json aws-security/files/output.json"
+            sh "inspec detect -t aws://"
+            sh "inspec exec aws-security --reporter=cli junit:/tmp/test-results/inspec-junit.xml -t aws://us-east-1"
+            stash name: 'inspec_results', includes: '/tmp/test-results/inspec-junit.xml'
+					}
+				}
+			}
+		}
+    stage('Manual Approval') {
+      // TODO: this should be outside the implicit node definition, but then we'd
+      // have to work out how to manage the plan/plan.out being persisted between stages
+      // (probably use stash & unstash?)
+      when {
+        expression { env.BRANCH_NAME == 'master' }
+      }
+      steps {
+        input 'Do you approve the apply?'
+      }
+    }
+  }
+  post {
+    always {
+      unstash 'inspec_results'
+      junit '/tmp/test-results/inspec-junit.xml'
+    }
   }
 }
