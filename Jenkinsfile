@@ -13,7 +13,12 @@ pipeline {
     stage('Validate & lint') {
       parallel {
         stage('packer validate') {
-          agent { docker { image 'simonmcc/hashicorp-pipeline:latest' alwaysPull } }
+          agent {
+            docker {
+              image 'simonmcc/hashicorp-pipeline:latest'
+              alwaysPull true
+            }
+          }
           steps {
             deleteDir()
             checkout scm
