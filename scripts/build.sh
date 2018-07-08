@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
 set -e
 
 # load our helper functions
@@ -36,6 +38,8 @@ TAG_EXISTS=$(tag_exists $SHA)
 if [ "$TAG_EXISTS" = "false" ]; then
     echo "No AMI found for ${NAME} (SHA: ${SHA}), building one.."
     packer build ${DIR}/$NAME.json
+    PACKER_EXIT=$?
+    echo "Packer exit code: ${PACKER_EXIT}"
 else
     echo "AMI found for ${NAME} (SHA: ${SHA})"
     touch manifest-${NAME}.json

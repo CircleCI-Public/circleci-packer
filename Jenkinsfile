@@ -13,7 +13,7 @@ pipeline {
     stage('Validate & lint') {
       parallel {
         stage('packer validate') {
-          agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
+          agent { docker { image 'simonmcc/hashicorp-pipeline:latest' alwaysPull } }
           steps {
             deleteDir()
             checkout scm
@@ -43,7 +43,7 @@ pipeline {
                           accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                           secretKeyVariable: 'AWS_SECRET_ACCESS_KEY' ]]) {
 					wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-						sh "./scripts/build.sh base base ; echo $?"
+						sh "./scripts/build.sh base base"
 						sh "./scripts/build.sh app app"
 					}
 				}
