@@ -3,6 +3,9 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# debug - expand all commands
+set -x
+
 # load our helper functions
 source scripts/common.sh
 

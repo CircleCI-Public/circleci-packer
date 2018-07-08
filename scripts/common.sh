@@ -6,6 +6,7 @@ tag_exists () {
         exit 1
     fi
     EMPTY=$(aws ec2 describe-images --filters Name=tag:SHA,Values=$SHA --query 'Images[*]')
+    AWS_CLI_EXIT_CODE=$?
     if [ "$EMPTY" = "[]" ]; then
         echo "false"
     else
