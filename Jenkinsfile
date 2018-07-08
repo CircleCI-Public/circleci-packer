@@ -54,17 +54,6 @@ pipeline {
 				}
 			}
 		}
-    stage('Manual Approval') {
-      // TODO: this should be outside the implicit node definition, but then we'd
-      // have to work out how to manage the plan/plan.out being persisted between stages
-      // (probably use stash & unstash?)
-      when {
-        expression { env.BRANCH_NAME == 'master' }
-      }
-      steps {
-        input 'Do you approve the apply?'
-      }
-    }
 
 		stage('build test stack') {
 			agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
