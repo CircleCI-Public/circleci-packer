@@ -21,7 +21,7 @@ pipeline {
 
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
               sh "packer validate ./base/base.json"
-              sh "packer validate ./base/app.json"
+              sh "packer validate ./app/app.json"
             }
           }
         }
