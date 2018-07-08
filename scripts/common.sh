@@ -23,7 +23,14 @@ tag_exists () {
 }
 
 get_git_branch () {
-    git symbolic-ref --short HEAD
+    local GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+    if [[ "${GIT_BRANCH}" == 'HEAD' ]]; then
+      local SHORT_SHA=$(git rev-parse --short HEAD)
+      echo "${GIT_BRANCH}/${SHORT_SHA}"
+    else
+      echo "${GIT_BRANCH}"
+    fi
 }
 
 base_rebuilt () {
