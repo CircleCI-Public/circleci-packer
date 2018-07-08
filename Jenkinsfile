@@ -12,7 +12,7 @@ pipeline {
   stages {
     stage('Validate & lint') {
       parallel {
-        stage('Packer Validate') {
+        stage('packer validate') {
           agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
           steps {
             deleteDir()
@@ -28,6 +28,7 @@ pipeline {
         stage('terraform fmt') {
           agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
           steps {
+            checkout scm
             sh "terraform fmt -check=true -diff=true"
           }
         }
