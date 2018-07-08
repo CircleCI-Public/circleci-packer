@@ -21,7 +21,7 @@ pipeline {
 
             wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
               sh "packer validate ./base/base.json"
-              sh "packer validate ./app/app.json"
+              sh "AMI_BASE=ami-fakefake packer validate app/app.json"
             }
           }
         }
