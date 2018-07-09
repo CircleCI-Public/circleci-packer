@@ -79,7 +79,7 @@ pipeline {
 			agent {
         docker {
           image 'chef/inspec:latest'
-          args '--entrypoint ash'
+          //args '--entrypoint ash'
         }
       }
       when {
@@ -92,13 +92,13 @@ pipeline {
                           accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                           secretKeyVariable: 'AWS_SECRET_ACCESS_KEY' ]]) {
 					wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+            sh "detect -t aws://"
             unstash 'terraform_output'
             // sh "cat output.json"
             // sh "mkdir aws-security/files || true"
             // sh "mkdir /tmp/test-results || true"
             // sh "cp output.json aws-security/files/output.json"
-            //sh "inspec detect -t aws://"
-            sh "inspec exec aws-security --reporter=cli junit:/tmp/test-results/inspec-junit.xml -t aws://us-east-1"
+            sh "exec aws-security --reporter=cli junit:/tmp/test-results/inspec-junit.xml -t aws://us-east-1"
             stash name: 'inspec_results', includes: '/tmp/test-results/inspec-junit.xml'
 					}
 				}
