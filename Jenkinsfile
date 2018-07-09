@@ -76,7 +76,12 @@ pipeline {
 			}
 		}
 		stage('test test stack') {
-			agent { docker { image 'chef/inspec:latest' } }
+			agent {
+        docker {
+          image 'chef/inspec:latest'
+          args '--entrypoint ash'
+        }
+      }
       when {
         expression { env.BRANCH_NAME != 'master' }
       }
