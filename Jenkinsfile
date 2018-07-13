@@ -73,6 +73,18 @@ pipeline {
 					}
 				}
 			}
+      post {
+        failure {
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                            credentialsId: 'demo-aws-creds',
+                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY' ]]) {
+            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+              sh "./scripts/tf-wrapper.sh -a destroy"
+            }
+          }
+        }
+      }
 		}
 		stage('test test stack') {
 			agent {
