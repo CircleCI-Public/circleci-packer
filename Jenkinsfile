@@ -90,6 +90,7 @@ pipeline {
 			agent {
         docker {
           image 'chef/inspec:latest'
+           args "--entrypoint=''"
         }
       }
       when {
