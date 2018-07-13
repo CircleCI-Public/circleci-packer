@@ -147,7 +147,7 @@ pipeline {
   post {
     always {
       unstash 'inspec_results'
-      junit '/tmp/test-results/inspec-junit.xml'
+      junit 'test-results/*.xml'
     }
   }
 }
