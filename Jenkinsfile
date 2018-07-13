@@ -109,7 +109,7 @@ pipeline {
             sh "mkdir /tmp/test-results || true"
             sh "cp output.json aws-security/files/output.json"
             sh "inspec exec aws-security --reporter=cli junit:/tmp/test-results/inspec-junit.xml -t aws://us-east-1"
-            sh "cat /tmp/test-results/inspec-junit.xml"
+            sh "touch /tmp/test-results/inspec-junit.xml"
             stash name: 'inspec_results', includes: '/tmp/test-results/inspec-junit.xml'
 					}
 				}
