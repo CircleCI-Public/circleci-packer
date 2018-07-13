@@ -79,7 +79,6 @@ pipeline {
 			agent {
         docker {
           image 'chef/inspec:latest'
-          //args '--entrypoint ash'
         }
       }
       when {
@@ -92,7 +91,7 @@ pipeline {
                           accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                           secretKeyVariable: 'AWS_SECRET_ACCESS_KEY' ]]) {
 					wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-            sh "detect -t aws://"
+            sh "inspec detect -t aws://"
             unstash 'terraform_output'
             // sh "cat output.json"
             // sh "mkdir aws-security/files || true"
