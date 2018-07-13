@@ -3,9 +3,6 @@
 // of a Multibranch Project in Jenkins - this fits with the model of branches/PR's being
 // tested & master being deployed)
 pipeline {
-  // default node/agent image
-  agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
-
   environment {
      AWS_DEFAULT_REGION = 'us-east-1'
   }
@@ -134,6 +131,7 @@ pipeline {
   }
   post {
     always {
+      agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
       unstash 'inspec_results'
       junit '/tmp/test-results/inspec-junit.xml'
     }
