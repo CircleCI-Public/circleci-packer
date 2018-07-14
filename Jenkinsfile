@@ -132,16 +132,49 @@ pipeline {
 				}
 			}
 		}
+		stage('terraform plan - master') {
+			agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
+      when {
+        expression { env.BRANCH_NAME == 'master' }
+      }
+			steps {
+				checkout scm
+				withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'demo-aws-creds',
+                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY' ]]) {
+					wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+						sh "./scripts/tf-wrapper.sh -a plan"
+            stash name: 'terraform_plan', includes: 'plan/plan.out', '.terraform/**'
+					}
+				}
+			}
+    }
     stage('Manual Approval') {
-      // TODO: this should be outside the implicit node definition, but then we'd
-      // have to work out how to manage the plan/plan.out being persisted between stages
-      // (probably use stash & unstash?)
       when {
         expression { env.BRANCH_NAME == 'master' }
       }
       steps {
         input 'Do you approve the apply?'
       }
+    }
+		stage('terraform apply - master') {
+			agent { docker { image 'simonmcc/hashicorp-pipeline:latest' } }
+      when {
+        expression { env.BRANCH_NAME == 'master' }
+      }
+			steps {
+				checkout scm
+				withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'demo-aws-creds',
+                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY' ]]) {
+					wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+            unstash 'terraform_plan'
+						sh "./scripts/tf-wrapper.sh -a apply"
+					}
+				}
+			}
     }
   }
   post {
