@@ -24,10 +24,17 @@ tag_exists () {
 
 get_git_branch () {
     local GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    local GIT_MASTER_SHA=$(git rev-parse --short master)
+
 
     if [[ "${GIT_BRANCH}" == 'HEAD' ]]; then
       local SHORT_SHA=$(git rev-parse --short HEAD)
-      echo "${GIT_BRANCH}/${SHORT_SHA}"
+      # Jenkins will often checkout the SHA of a branch, check against master
+      if [[ "${GIT_BRANCH}" == "${GIT_MASTER_SHA}" ]]; then
+        echo "master"
+      else
+        echo "${GIT_BRANCH}/${SHORT_SHA}"
+      fi
     else
       echo "${GIT_BRANCH}"
     fi
