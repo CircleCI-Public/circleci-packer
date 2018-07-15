@@ -107,7 +107,7 @@ pipeline {
             sh "cp output.json aws-security/files/output.json"
             sh "inspec exec aws-security --reporter=cli junit:test-results/inspec-junit.xml -t aws://us-east-1"
             sh "touch test-results/inspec-junit.xml"
-            stash name: 'inspec_results', includes: 'test-results/*.xml', allowEmpty: true
+            junit 'test-results/*.xml'
           }
         }
       }
@@ -172,12 +172,6 @@ pipeline {
           }
         }
       }
-    }
-  }
-  post {
-    always {
-      unstash 'inspec_results'
-      junit 'test-results/*.xml'
     }
   }
 }
