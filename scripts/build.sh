@@ -1,5 +1,17 @@
 #!/bin/bash
+#
+# Hashicorp packer/terraform simple stack build wrapper
+# * facilitates building base & service/app AMI (service/app depends on base)
+# * tag AMI's with SHA1 of the packer .json file that built it
+#
+# Wrapping a few CLI command in bash always seems like a good idea at the start.
+# It's not. Don't do it. Use python to wrap & possible call API's directly.
+
+# Exit immediately if a command exits with a non-zero status
 set -e
+
+# debug - expand all commands
+# set -x
 
 # load our helper functions
 source scripts/common.sh
@@ -36,6 +48,8 @@ TAG_EXISTS=$(tag_exists $SHA)
 if [ "$TAG_EXISTS" = "false" ]; then
     echo "No AMI found for ${NAME} (SHA: ${SHA}), building one.."
     packer build ${DIR}/$NAME.json
+    PACKER_EXIT=$?
+    echo "Packer exit code: ${PACKER_EXIT}"
 else
     echo "AMI found for ${NAME} (SHA: ${SHA})"
     touch manifest-${NAME}.json

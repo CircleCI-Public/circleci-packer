@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Wrapping a few CLI command in bash always seems like a good idea at the start.
+# It's not. Don't do it. Use python to wrap & possible call API's directly.
 tag_exists () {
     local SHA=$1
     if [[ -z "$SHA" ]]; then
@@ -6,15 +9,28 @@ tag_exists () {
         exit 1
     fi
     EMPTY=$(aws ec2 describe-images --filters Name=tag:SHA,Values=$SHA --query 'Images[*]')
-    if [ "$EMPTY" = "[]" ]; then
-        echo "false"
+    AWS_CLI_EXIT_CODE=$?
+    if [[ "${AWS_CLI_EXIT_CODE}" -eq 0 ]]; then
+      if [ "$EMPTY" = "[]" ]; then
+          echo "false"
+      else
+          echo "true"
+      fi
     else
-        echo "true"
+      (>&2 echo "ERROR: AWS CLI error checking for existing images matching ${SHA}")
+      exit 2
     fi
 }
 
 get_git_branch () {
-    git symbolic-ref --short HEAD
+    local GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+    if [[ "${GIT_BRANCH}" == 'HEAD' ]]; then
+      local SHORT_SHA=$(git rev-parse --short HEAD)
+      echo "${GIT_BRANCH}/${SHORT_SHA}"
+    else
+      echo "${GIT_BRANCH}"
+    fi
 }
 
 base_rebuilt () {
