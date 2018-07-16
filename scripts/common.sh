@@ -28,7 +28,9 @@ get_git_branch () {
 # (except if the current short SHA matches master)
     local GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
     local GIT_BRANCH_SSHA=$(git rev-parse --short HEAD)
-    local GIT_MASTER_SHA=$(git rev-parse --short master)
+    # origin/master, not just master, as in a Jenkins workspace, local branches aren't mapped
+    # https://stackoverflow.com/questions/28355697/git-rev-parse-verify-says-fatal-needed-a-single-revision
+    local GIT_MASTER_SHA=$(git rev-parse --short origin/master)
 
     # Jenkins will often checkout the SHA of a branch, check against master
     if [[ "${GIT_BRANCH}" == 'HEAD' ]]; then
