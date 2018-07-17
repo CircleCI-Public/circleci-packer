@@ -1,28 +1,49 @@
+# Simple Stacks - pipelines for small single node environments
+# 1. Build the base AMI (overkill for this example, should be in seperate repo)
+# 2. Build the app AMI from the base AMI
+# 3. Test the app ami (via terraform plan/apply/testinfra/destroy? test environment)
+# 4. terraform plan using the freshly built app AMI (production)
+# 5. if master branch - hold
+# 6. if master branch - apply
+
 version: 2
 jobs:
-  validate:
+  xbuild:
     docker:
-      - image: hashicorp/packer:1.1.1
-    working_directory: ~/packer
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - run:
+          name: Hello World
+          command: echo "Hello World! Where's my workflow?"
+  terraform-fmt:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - run:
+          name: terraform fmt
+          command: terraform fmt -check=true -diff=true
+  packer-validate:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - checkout
       - run:
           name: Validate base
           command: packer validate ./base/base.json
       - run:
-          name: Validate snowflake
-          command: packer validate ./snowflake/snowflake.json
+          name: Validate app
+          command: packer validate ./app/app.json
   build-base:
     docker:
-      - image: hashicorp/packer:1.1.1
-    working_directory: ~/packer
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - checkout
       - attach_workspace:
-          at: ~/packer
+          at: .
       - run:
           name: Build base
-          command: ./scripts/build.sh base ./base/base.json
+          command: ./scripts/build.sh base base
           no_output_timeout: 30m
       - persist_to_workspace:
           root: .
@@ -30,45 +51,141 @@ jobs:
             - manifest-base.json
       - store_artifacts:
           path: manifest-base.json
-  build-snowflake:
+  build-app:
     docker:
-      - image: hashicorp/packer:1.1.1
-    working_directory: ~/packer
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - checkout
       - attach_workspace:
-          at: ~/packer
+          at: .
       - run:
-          name: Build snowflake
-          command: ./scripts/build.sh secondary ./snowflake/snowflake.json
+          name: Build app
+          command: ./scripts/build.sh app app base
       - store_artifacts:
-          path: manifest-snowflake.json
-  canary-snowflake:
+          path: manifest-app.json
+  build-test-stack:
     docker:
-      - image: hashicorp/packer:1.1.1
-    working_directory: ~/packer
+      - image: simonmcc/hashicorp-pipeline:latest
     steps:
       - checkout
       - attach_workspace:
-          at: ~/packer
+          at: .
       - run:
-          name: Install JQ
-          command: apk --no-cache add jq
+          name: Build test stack via terraform
+          command: ./scripts/tf-wrapper.sh -a plan
       - run:
-          name: Deploy canary
-          command: ./scripts/deploy-master-canary.sh
+          name: Terraform apply
+          command: ./scripts/tf-wrapper.sh -a apply
+      - run:
+          name: Test the deployed stack
+          command: |
+            echo "TODO: Test stuff"
+            cat output.json
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - output.json
+  test-test-stack:
+    docker:
+      - image: chef/inspec:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Test the deployed stack
+          command: |
+            cat output.json
+            mkdir aws-security/files || true
+            mkdir /tmp/test-results || true
+            cp output.json aws-security/files/output.json
+            inspec detect -t aws://
+            inspec exec aws-security --reporter=cli junit:/tmp/test-results/inspec-junit.xml -t aws://us-east-1
+      - store_test_results:
+          path: /tmp/test-results
+  destroy-test-stack:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Destroy Test Stack
+          command: ./scripts/tf-wrapper.sh -a destroy
+  terraform-plan:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - run:
+          name: Terraform plan
+          command: ./scripts/tf-wrapper.sh -a plan
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - plan/plan.out
+            - .terraform
+  terraform-apply:
+    docker:
+      - image: simonmcc/hashicorp-pipeline:latest
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Terraform apply
+          command: ./scripts/tf-wrapper.sh -a apply
+
 workflows:
   version: 2
-  build-and-deploy:
+  packer-terraform:
     jobs:
-      - validate
+      - packer-validate
+      - terraform-fmt
       - build-base:
           requires:
-            - validate
-      - build-snowflake:
+            - packer-validate
+      - build-app:
           requires:
-            - validate
+            - packer-validate
             - build-base
-      - canary-snowflake:
+      - build-test-stack:
+          filters:
+            branches:
+              ignore: master
           requires:
-            - build-snowflake
+            - build-app
+            - terraform-fmt
+      - test-test-stack:
+          filters:
+            branches:
+              ignore: master
+          requires:
+            - build-test-stack
+      - destroy-test-stack:
+          filters:
+            branches:
+              ignore: master
+          requires:
+            - test-test-stack
+      - terraform-plan:
+          filters:
+            branches:
+              only: master
+          requires:
+            - build-app
+      - hold:
+          filters:
+            branches:
+              only: master
+          type: approval
+          requires:
+           - terraform-plan
+      - terraform-apply:
+          filters:
+            branches:
+              only: master
+          requires:
+            - terraform-plan
+            - hold
