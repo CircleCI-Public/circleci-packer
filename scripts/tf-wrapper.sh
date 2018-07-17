@@ -63,7 +63,7 @@ case "${TF_ACTION}" in
 				terraform plan -var-file=${TF_VARS_FILE} -out=plan/plan.out
 				;;
 		apply)
-				terraform apply -var-file=${TF_VARS_FILE} plan/plan.out
+				terraform apply plan/plan.out
 				terraform output
         # once more for the camera
 				terraform output -json > output.json
