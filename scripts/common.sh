@@ -26,6 +26,8 @@ get_git_branch () {
 # output the current branch, or HEAD/SHORT_SHA if we are on a
 # 'detached HEAD' - which will happen often in Jenkins
 # (except if the current short SHA matches master)
+# TODO: https://stackoverflow.com/questions/6059336/how-to-find-the-current-git-branch-in-detached-head-state
+#   git for-each-ref --format='%(objectname) %(refname:short)' refs/heads | awk "/^$(git rev-parse HEAD)/ {print \$2}"
     local GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
     local GIT_BRANCH_SSHA=$(git rev-parse --short HEAD)
     # origin/master, not just master, as in a Jenkins workspace, local branches aren't mapped
