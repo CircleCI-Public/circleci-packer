@@ -1,7 +1,15 @@
 provider "aws" {}
 
+variable "vpc_main_cidr" {
+  type = "string"
+}
+
+variable "vpc_dmz_cidr" {
+  type = "string"
+}
+
 resource "aws_vpc" "main" {
-  cidr_block = "172.18.0.0/16"
+  cidr_block = "${var.vpc_main_cidr}"
 }
 
 output "main_vpc_id" {
@@ -9,7 +17,7 @@ output "main_vpc_id" {
 }
 
 resource "aws_vpc" "dmz" {
-  cidr_block = "172.19.0.0/16"
+  cidr_block = "${var.vpc_dmz_cidr}"
 }
 
 output "dmz_vpc_id" {
