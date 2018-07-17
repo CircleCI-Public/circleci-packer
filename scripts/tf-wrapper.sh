@@ -11,7 +11,7 @@
 #
 set -e
 # DEBUG
-set -x
+#set -x
 
 THIS_SCRIPT=${BASH_SOURCE[0]:-$0}
 # grumble, moan, PATH, symlinks
