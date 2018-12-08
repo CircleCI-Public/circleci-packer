@@ -1,10 +1,10 @@
 {
   "_readme": [
-    "Ubuntu 16.04 (xenial) LTS",
+    "Ubuntu 18.04 (bionic) LTS",
     "AMI: amd64 hvm:ebs-ssd",
     "     see the *_ami variables below for specific names",
     "base_ami should be latest Ubuntu AMI",
-    "curl -sSL 'https://cloud-images.ubuntu.com/query/xenial/server/released.current.txt' | grep us-east-1 | grep hvm | grep -e 'ebs' | awk '{print $8;}'",
+    "curl -sSL 'https://cloud-images.ubuntu.com/query/bionic/server/released.current.txt' | grep ap-northeast-1 | grep hvm | grep -e 'ebs' | awk '{print $8;}'",
     ""
   ],
   "builders": [
@@ -12,10 +12,10 @@
       "ami_description": "{{user `ami_name`}} AMI",
       "ami_name": "{{user `ami_name`}} {{timestamp}}",
       "ami_regions": [
-        "us-east-1"
+        "ap-northeast-1"
       ],
       "instance_type": "t2.micro",
-      "region": "us-east-1",
+      "region": "ap-northeast-1",
       "run_tags": {
         "ami-create": "{{user `ami_name`}}"
       },
@@ -23,7 +23,7 @@
       "ssh_username": "ubuntu",
       "tags": {
         "OS_Name": "Ubuntu",
-        "OS_Version": "16.04",
+        "OS_Version": "18.04",
         "SHA": "{{user `ami_sha`}}",
         "AMI": "{{user `ami_name`}}"
       },
@@ -54,8 +54,8 @@
     }
   ],
   "variables": {
-    "ami_name": "baseline-ubuntu-1604",
-    "ami_base": "ami-aa2ea6d0",
+    "ami_name": "baseline-ubuntu-1804",
+    "ami_base": "ami-0f5356c678ce0810a",
     "ami_sha":  "{{env `SHA`}}"
   }
 }
