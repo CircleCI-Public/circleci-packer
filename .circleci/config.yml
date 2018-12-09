@@ -69,6 +69,7 @@ workflows:
           requires:
             - validate
             - build-base
+          context: AMI
       - canary-snowflake:
           requires:
             - build-snowflake
